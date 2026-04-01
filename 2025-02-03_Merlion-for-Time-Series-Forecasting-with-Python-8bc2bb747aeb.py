@@ -132,8 +132,8 @@ for model, name in zip([arima_model, prophet_model], ["Merlion ARIMA", "Prophet"
 comparison_df = pd.DataFrame(results)
 logger.info(comparison_df)
 
-0       Merlion ARIMA   6.038623
-1       Prophet         25.010984
+# 0       Merlion ARIMA   6.038623
+# 1       Prophet         25.010984
 
 # Import necessary libraries
 
@@ -265,10 +265,10 @@ smape_values = {
 smape_table = pd.DataFrame(list(smape_values.items()), columns=["Model", "sMAPE"]).sort_values(by="sMAPE")
 logger.info(smape_table)
 
-Model      sMAPE
-5                  Default Forecaster   4.698401
-4                       Merlion ARIMA   6.038623
-1   Prophet (Mean-Variance Normalize)  20.132062
-0              Prophet (No Transform)  25.010984
-2  Prophet (Moving Average Transform)  29.058623
-3     Prophet (Seasonal Differencing)  47.833924
+# Model      sMAPE
+# 5                  Default Forecaster   4.698401
+# 4                       Merlion ARIMA   6.038623
+# 1   Prophet (Mean-Variance Normalize)  20.132062
+# 0              Prophet (No Transform)  25.010984
+# 2  Prophet (Moving Average Transform)  29.058623
+# 3     Prophet (Seasonal Differencing)  47.833924
