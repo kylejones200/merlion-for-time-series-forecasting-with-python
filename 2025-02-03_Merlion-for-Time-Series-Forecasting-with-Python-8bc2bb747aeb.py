@@ -191,7 +191,7 @@ def get_model(model_type="prophet", transform=None):
 
 
 # Function to evaluate and visualize forecasts
-def eval_model(model, train_data, test_data, title):
+def eval_model(model, train_data, test_data, title, plot: bool = False):
     forecast_horizon = min(len(test_data), 168)  # Forecast up to 7 days (168 hours)
     t = test_data.time_stamps[:forecast_horizon]
 
@@ -214,16 +214,17 @@ def eval_model(model, train_data, test_data, title):
 
     logger.info(f"{title} - sMAPE: {smape_value:.2f}")
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(test_data.to_pd(), label="Actual")
-    plt.plot(yhat_test.to_pd(), label="Forecast", linestyle="--")
+    if plot:
+        plt.figure(figsize=(10, 6))
+        plt.plot(test_data.to_pd(), label="Actual")
+        plt.plot(yhat_test.to_pd(), label="Forecast", linestyle="--")
 
-    if hasattr(model, "forecast") and test_err is not None:
-        plt.fill_between(t, lb, ub, color="gray", alpha=0.3, label="Confidence Interval")
+        if hasattr(model, "forecast") and test_err is not None:
+            plt.fill_between(t, lb, ub, color="gray", alpha=0.3, label="Confidence Interval")
 
-    plt.legend()
-    plt.title(f"{title} - sMAPE: {smape_value:.2f}")
-    plt.show()
+        plt.legend()
+        plt.title(f"{title} - sMAPE: {smape_value:.2f}")
+        plt.show()
 
     return yhat_test
 
