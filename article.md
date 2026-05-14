@@ -24,7 +24,7 @@ Merlion has built in visuzlation tools but I'm using matplotlob instead so I can
 
 
 ### Anomaly Detection with Merlion
-Merlion supports **both supervised and unsupervised** anomaly detection models.
+Merlion supports both supervised and unsupervised anomaly detection models.
 
 
 
