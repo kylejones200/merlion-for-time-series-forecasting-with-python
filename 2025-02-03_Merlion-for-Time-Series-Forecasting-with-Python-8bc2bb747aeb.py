@@ -1,17 +1,21 @@
 # Description: Short example for Merlion for Time Series Forecasting with Python.
 
 
+import logging
 
+import matplotlib.pyplot as plt
+import pandas as pd
 from data_io import read_csv
 from merlion.evaluate.forecast import ForecastMetric
-from merlion.models.anomaly.isolation_forest import IsolationForest, IsolationForestConfig
+from merlion.models.anomaly.isolation_forest import (
+    IsolationForest,
+    IsolationForestConfig,
+)
 from merlion.models.defaults import DefaultForecasterConfig
 from merlion.models.factory import ModelFactory
 from merlion.models.forecast.arima import Arima, ArimaConfig
-from merlion.models.forecast.arima import ArimaConfig
 from merlion.models.forecast.prophet import Prophet, ProphetConfig
-from merlion.models.forecast.prophet import ProphetConfig
-from merlion.transform.moving_average import MovingAverage, DifferenceTransform
+from merlion.transform.moving_average import DifferenceTransform, MovingAverage
 from merlion.transform.normalize import MeanVarNormalize
 from merlion.transform.resample import TemporalResample
 from merlion.transform.sequence import TransformSequence
@@ -19,9 +23,6 @@ from merlion.utils import TimeSeries
 from merlion.utils.time_series import TimeSeries
 from scipy.stats import norm
 from sklearn.model_selection import TimeSeriesSplit
-import logging
-import matplotlib.pyplot as plt
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -30,16 +31,15 @@ logging.basicConfig(
 )
 
 
-
 # Load dataset
 url = "https://raw.githubusercontent.com/kylejones200/time_series/main/ercot_load_data.csv"
 df = read_csv(url)
 # Convert time column to datetime format
-df['date'] = pd.to_datetime(df['date'])
-df.set_index('date', inplace=True)
+df["date"] = pd.to_datetime(df["date"])
+df.set_index("date", inplace=True)
 # Resample to hourly frequency
-df = df.resample('H').mean()
-df['values'] = df['values'].interpolate()
+df = df.resample("H").mean()
+df["values"] = df["values"].interpolate()
 # Convert to Merlion TimeSeries format
 ts = TimeSeries.from_pd(df)
 logger.info(ts)
@@ -50,7 +50,7 @@ prophet_config = ProphetConfig(
     add_seasonality="auto",
     weekly_seasonality=True,
     daily_seasonality=True,
-    changepoint_prior_scale=0.05  # Better trend detection
+    changepoint_prior_scale=0.05,  # Better trend detection
 )
 prophet_model = Prophet(prophet_config)
 # Initialize ARIMA (manually tuned order)
@@ -108,12 +108,14 @@ plt.show()
 
 
 # Instantiate models correctly
-prophet_model = Prophet(ProphetConfig(
-    add_seasonality="auto",
-    weekly_seasonality=True,
-    daily_seasonality=True,
-    changepoint_prior_scale=0.05
-))
+prophet_model = Prophet(
+    ProphetConfig(
+        add_seasonality="auto",
+        weekly_seasonality=True,
+        daily_seasonality=True,
+        changepoint_prior_scale=0.05,
+    )
+)
 arima_model = Arima(ArimaConfig(order=(2, 1, 2), target_seq_index=0))
 
 # Train the models
@@ -141,12 +143,12 @@ url = "https://raw.githubusercontent.com/kylejones200/time_series/main/ercot_loa
 df = read_csv(url)
 
 # Convert time column to datetime format
-df['date'] = pd.to_datetime(df['date'])
-df.set_index('date', inplace=True)
+df["date"] = pd.to_datetime(df["date"])
+df.set_index("date", inplace=True)
 
 # Resample to hourly frequency
-df = df.resample('H').mean()
-df['values'] = df['values'].interpolate()
+df = df.resample("H").mean()
+df["values"] = df["values"].interpolate()
 
 # Remove outliers (values beyond 3 standard deviations)
 df["z_score"] = (df["values"] - df["values"].mean()) / df["values"].std()
@@ -164,6 +166,7 @@ test_data = TimeSeries.from_pd(df.iloc[test_idx])
 
 # Function to create a model using ModelFactory
 
+
 def get_model(model_type="prophet", transform=None):
     config_dict = {
         "prophet": ProphetConfig(
@@ -171,22 +174,26 @@ def get_model(model_type="prophet", transform=None):
             weekly_seasonality=True,
             daily_seasonality=True,
             changepoint_prior_scale=0.05,  # Better trend detection
-            transform=TransformSequence([TemporalResample(), transform]) if transform else None
+            transform=TransformSequence([TemporalResample(), transform])
+            if transform
+            else None,
         ),
         "arima": ArimaConfig(order=(2, 1, 2), target_seq_index=0),
-        "default": DefaultForecasterConfig()
+        "default": DefaultForecasterConfig(),
     }
 
     model_mapping = {
         "prophet": "merlion.models.forecast.prophet:Prophet",
         "arima": "merlion.models.forecast.arima:Arima",
-        "default": "merlion.models.defaults:DefaultForecaster"
+        "default": "merlion.models.defaults:DefaultForecaster",
     }
 
     if model_type not in model_mapping:
         raise ValueError(f"Invalid model type: {model_type}")
 
-    return ModelFactory.create(model_mapping[model_type], **config_dict[model_type].to_dict())
+    return ModelFactory.create(
+        model_mapping[model_type], **config_dict[model_type].to_dict()
+    )
 
 
 # Function to evaluate and visualize forecasts
@@ -202,8 +209,12 @@ def eval_model(model, train_data, test_data, title, plot: bool = False):
     # Confidence Intervals
     if hasattr(model, "forecast") and test_err is not None:
         ci_multiplier = 1.96  # 95% confidence
-        lb = (yhat_test.to_pd() - ci_multiplier * test_err.to_pd().abs()).values.flatten()
-        ub = (yhat_test.to_pd() + ci_multiplier * test_err.to_pd().abs()).values.flatten()
+        lb = (
+            yhat_test.to_pd() - ci_multiplier * test_err.to_pd().abs()
+        ).values.flatten()
+        ub = (
+            yhat_test.to_pd() + ci_multiplier * test_err.to_pd().abs()
+        ).values.flatten()
 
         # Ensure confidence intervals have the same length as timestamps
         min_length = min(len(t), len(lb), len(ub))
@@ -219,7 +230,9 @@ def eval_model(model, train_data, test_data, title, plot: bool = False):
         plt.plot(yhat_test.to_pd(), label="Forecast", linestyle="--")
 
         if hasattr(model, "forecast") and test_err is not None:
-            plt.fill_between(t, lb, ub, color="gray", alpha=0.3, label="Confidence Interval")
+            plt.fill_between(
+                t, lb, ub, color="gray", alpha=0.3, label="Confidence Interval"
+            )
 
         plt.legend()
         plt.title(f"{title} - sMAPE: {smape_value:.2f}")
@@ -227,48 +240,76 @@ def eval_model(model, train_data, test_data, title, plot: bool = False):
 
     return yhat_test
 
-# Run Prophet Model Without Transformations
-logger.info("No transform...")
-base = eval_model(get_model("prophet"), train_data, test_data, title="No Transform")
 
-# Apply Normalization
-logger.info("Normalize...")
-norm = eval_model(get_model("prophet", MeanVarNormalize()), train_data, test_data, title="Mean-Variance Normalize")
 
-# Apply Moving Average Transform
-logger.info("Moving Average...")
-ma = eval_model(get_model("prophet", MovingAverage(n_steps=12)), train_data, test_data, title="Moving Average Transform")
+def main():
+    # Run Prophet Model Without Transformations
+    logger.info("No transform...")
+    base = eval_model(get_model("prophet"), train_data, test_data, title="No Transform")
 
-# Apply Seasonal Differencing
-logger.info("Seasonal Differencing...")
-diff = eval_model(get_model("prophet", DifferenceTransform()), train_data, test_data, title="Seasonal Differencing Transform")
+    # Apply Normalization
+    logger.info("Normalize...")
+    norm = eval_model(
+        get_model("prophet", MeanVarNormalize()),
+        train_data,
+        test_data,
+        title="Mean-Variance Normalize",
+    )
 
-# Run Merlion ARIMA Model
-logger.info("\n=== ARIMA Model ===")
-arima_results = eval_model(get_model("arima"), train_data, test_data, title="Merlion ARIMA")
+    # Apply Moving Average Transform
+    logger.info("Moving Average...")
+    ma = eval_model(
+        get_model("prophet", MovingAverage(n_steps=12)),
+        train_data,
+        test_data,
+        title="Moving Average Transform",
+    )
 
-# Run Default Forecaster (Baseline Model)
-logger.info("\n=== Default Forecaster (Baseline Model) ===")
-default_results = eval_model(get_model("default"), train_data, test_data, title="Default Forecaster")
+    # Apply Seasonal Differencing
+    logger.info("Seasonal Differencing...")
+    diff = eval_model(
+        get_model("prophet", DifferenceTransform()),
+        train_data,
+        test_data,
+        title="Seasonal Differencing Transform",
+    )
 
-# Create a table of sMAPE values
-smape_values = {
-    "Prophet (No Transform)": ForecastMetric.sMAPE.value(test_data, base),
-    "Prophet (Mean-Variance Normalize)": ForecastMetric.sMAPE.value(test_data, norm),
-    "Prophet (Moving Average Transform)": ForecastMetric.sMAPE.value(test_data, ma),
-    "Prophet (Seasonal Differencing)": ForecastMetric.sMAPE.value(test_data, diff),
-    "Merlion ARIMA": ForecastMetric.sMAPE.value(test_data, arima_results),
-    "Default Forecaster": ForecastMetric.sMAPE.value(test_data, default_results),
-}
+    # Run Merlion ARIMA Model
+    logger.info("\n=== ARIMA Model ===")
+    arima_results = eval_model(
+        get_model("arima"), train_data, test_data, title="Merlion ARIMA"
+    )
 
-# Convert to a DataFrame
-smape_table = pd.DataFrame(list(smape_values.items()), columns=["Model", "sMAPE"]).sort_values(by="sMAPE")
-logger.info(smape_table)
+    # Run Default Forecaster (Baseline Model)
+    logger.info("\n=== Default Forecaster (Baseline Model) ===")
+    default_results = eval_model(
+        get_model("default"), train_data, test_data, title="Default Forecaster"
+    )
 
-# Model      sMAPE
-# 5                  Default Forecaster   4.698401
-# 4                       Merlion ARIMA   6.038623
-# 1   Prophet (Mean-Variance Normalize)  20.132062
-# 0              Prophet (No Transform)  25.010984
-# 2  Prophet (Moving Average Transform)  29.058623
-# 3     Prophet (Seasonal Differencing)  47.833924
+    # Create a table of sMAPE values
+    smape_values = {
+        "Prophet (No Transform)": ForecastMetric.sMAPE.value(test_data, base),
+        "Prophet (Mean-Variance Normalize)": ForecastMetric.sMAPE.value(test_data, norm),
+        "Prophet (Moving Average Transform)": ForecastMetric.sMAPE.value(test_data, ma),
+        "Prophet (Seasonal Differencing)": ForecastMetric.sMAPE.value(test_data, diff),
+        "Merlion ARIMA": ForecastMetric.sMAPE.value(test_data, arima_results),
+        "Default Forecaster": ForecastMetric.sMAPE.value(test_data, default_results),
+    }
+
+    # Convert to a DataFrame
+    smape_table = pd.DataFrame(
+        list(smape_values.items()), columns=["Model", "sMAPE"]
+    ).sort_values(by="sMAPE")
+    logger.info(smape_table)
+
+    # Model      sMAPE
+    # 5                  Default Forecaster   4.698401
+    # 4                       Merlion ARIMA   6.038623
+    # 1   Prophet (Mean-Variance Normalize)  20.132062
+    # 0              Prophet (No Transform)  25.010984
+    # 2  Prophet (Moving Average Transform)  29.058623
+    # 3     Prophet (Seasonal Differencing)  47.833924
+
+
+if __name__ == "__main__":
+    main()
