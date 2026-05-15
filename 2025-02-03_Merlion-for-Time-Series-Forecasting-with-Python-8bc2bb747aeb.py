@@ -21,7 +21,6 @@ from scipy.stats import norm
 from sklearn.model_selection import TimeSeriesSplit
 import logging
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
