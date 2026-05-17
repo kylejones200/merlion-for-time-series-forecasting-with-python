@@ -15,76 +15,15 @@ from merlion.evaluate.forecast import (
 )
 from merlion.models.automl.autosarima import AutoSarima, AutoSarimaConfig
 from merlion.models.automl.seasonality_mixin import SeasonalityLayer
+from merlion.models.defaults import DefaultForecaster, DefaultForecasterConfig
 from merlion.models.forecast.arima import Arima
 from merlion.models.forecast.prophet import Prophet, ProphetConfig
 from merlion.models.forecast.sarima import Sarima
+from merlion.ts_datasets.forecast import M4
 from merlion.utils import TimeSeries
 from merlion.utils.time_series import TimeSeries
+from scipy.stats import norm
 from ts_datasets.forecast import M4
-
-
-def main():
-    arima_model = Arima(order=(1, 1, 1))
-    arima_forecast, arima_eval = train_and_forecast(arima_model, train_data, test_data)
-    prophet_model = Prophet()
-    prophet_forecast, prophet_eval = train_and_forecast(
-        prophet_model, train_data, test_data
-    )
-    plt.figure(figsize=(15, 10))
-    plt.plot(train_data.to_pd(), label="Training Data", color="blue")
-    plt.plot(test_data.to_pd(), label="Test Data", color="green")
-    plt.plot(
-        arima_forecast.to_pd(), label="ARIMA Forecast", color="red", linestyle="--"
-    )
-    plt.plot(
-        prophet_forecast.to_pd(),
-        label="Prophet Forecast",
-        color="purple",
-        linestyle="--",
-    )
-    plt.title("Time Series Forecasting: ARIMA vs Prophet")
-    plt.xlabel("Date")
-    plt.ylabel("Value")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-    print("ARIMA Evaluation:")
-    print(arima_eval)
-    print("\nProphet Evaluation:")
-    print(prophet_eval)
-    from merlion.ts_datasets.forecast import M4
-    from merlion.utils import TimeSeries
-
-    time_series, metadata = M4(subset="Hourly")[0]
-    train_data = TimeSeries.from_pd(time_series[metadata.trainval])
-    test_data = TimeSeries.from_pd(time_series[~metadata.trainval])
-    "We can then initialize and train Merlion’s DefaultForecaster, which is an forecasting model that balances performance with efficiency. We also obtain its predictions on the test split.\n    "
-    from merlion.models.defaults import DefaultForecaster, DefaultForecasterConfig
-
-    model = DefaultForecaster(DefaultForecasterConfig())
-    model.train(train_data=train_data)
-    test_pred, test_err = model.forecast(time_stamps=test_data.time_stamps)
-    "Next, we visualize the model’s predictions.\n    "
-    import matplotlib.pyplot as plt
-
-    fig, ax = model.plot_forecast(time_series=test_data, plot_forecast_uncertainty=True)
-    plt.show()
-    "Finally, we quantitatively evaluate the model. sMAPE measures the error of the prediction on a scale of 0 to 100 (lower is better), while MSIS evaluates the quality of the 95% confidence band on a scale of 0 to 100 (lower is better).\n    "
-    from merlion.evaluate.forecast import ForecastMetric
-    from scipy.stats import norm
-
-    smape = ForecastMetric.sMAPE.value(ground_truth=test_data, predict=test_pred)
-    lb = TimeSeries.from_pd(
-        test_pred.to_pd() + norm.ppf(0.025) * test_err.to_pd().values
-    )
-    ub = TimeSeries.from_pd(
-        test_pred.to_pd() + norm.ppf(0.975) * test_err.to_pd().values
-    )
-    msis = ForecastMetric.MSIS.value(
-        ground_truth=test_data, predict=test_pred, insample=train_data, lb=lb, ub=ub
-    )
-    print(f"sMAPE: {smape:.4f}, MSIS: {msis:.4f}")
 
 
 def train_and_forecast(model, train_data, test_data):
@@ -95,7 +34,7 @@ def train_and_forecast(model, train_data, test_data):
     return (forecast, eval_result)
 
 
-def main() -> None:
+def assuming_your_data_and_values_are_already_define() -> None:
     df = pd.DataFrame({"timestamp": data, "value": values})
 
     df["timestamp"] = pd.to_datetime(df["timestamp"])
@@ -106,10 +45,14 @@ def main() -> None:
 
     print(ts)
 
+
+def initialize_an_arima_model() -> None:
     config = Arima.Config(order=(5, 1, 0))
 
     model = Arima(config)
 
+
+def create_some_sample_data() -> None:
     dates = pd.date_range(start="2020-01-01", end="2022-12-31", freq="D")
 
     values = np.random.randn(len(dates)).cumsum()
@@ -118,6 +61,8 @@ def main() -> None:
 
     df.set_index("timestamp", inplace=True)
 
+
+def visualize_the_time_series_and_draw_a_dotted_line() -> None:
     logging.basicConfig(level=logging.DEBUG)
 
     time_series, metadata = M4("Hourly")[0]
@@ -161,6 +106,8 @@ def main() -> None:
 
     print(f"Full AutoSarima with approximation sMAPE is {smape1:.4f}")
 
+
+def train_the_model_on_the_dataset() -> None:
     model.train(ts)
 
     evaluator = ForecastEvaluator(model, ts)
@@ -169,6 +116,8 @@ def main() -> None:
 
     print(forecast)
 
+
+def create_some_sample_data_2() -> None:
     dates = pd.date_range(start="2020-01-01", end="2022-12-31", freq="D")
 
     values = np.random.randn(len(dates)).cumsum()
@@ -197,8 +146,12 @@ def main() -> None:
 
     print(eval_result)
 
+
+def after_creating_and_training_the_model() -> None:
     print(inspect.signature(model.forecast))
 
+
+def create_some_sample_data_3() -> None:
     dates = pd.date_range(start="2020-01-01", end="2022-12-31", freq="D")
 
     values = np.random.randn(len(dates)).cumsum()
@@ -233,6 +186,8 @@ def main() -> None:
 
     print(eval_result)
 
+
+def plot_the_original_data_and_forecast() -> None:
     plt.figure(figsize=(10, 6))
 
     plt.plot(ts.to_pd(), label="Actual")
@@ -252,6 +207,8 @@ def main() -> None:
 
     plt.show()
 
+
+def create_some_sample_data_4() -> None:
     dates = pd.date_range(start="2020-01-01", end="2022-12-31", freq="D")
 
     values = np.random.randn(len(dates)).cumsum()
@@ -317,6 +274,8 @@ def main() -> None:
 
     plt.show()
 
+
+def create_some_sample_data_5() -> None:
     dates = pd.date_range(start="2020-01-01", end="2022-12-31", freq="D")
 
     values = np.random.randn(len(dates)).cumsum()
@@ -384,6 +343,8 @@ def main() -> None:
 
     plt.show()
 
+
+def create_some_sample_data_6() -> None:
     dates = pd.date_range(start="2020-01-01", end="2022-12-31", freq="D")
 
     values = np.random.randn(len(dates)).cumsum()
@@ -453,6 +414,8 @@ def main() -> None:
 
     plt.show()
 
+
+def create_sample_data() -> None:
     np.random.seed(42)
 
     dates = pd.date_range(start="2020-01-01", end="2022-12-31", freq="D")
@@ -475,7 +438,111 @@ def main() -> None:
 
     test_data = ts[-365:]
 
-    main()
+    arima_model = Arima(order=(1, 1, 1))
+
+    arima_forecast, arima_eval = train_and_forecast(arima_model, train_data, test_data)
+
+    prophet_model = Prophet()
+
+    prophet_forecast, prophet_eval = train_and_forecast(
+        prophet_model, train_data, test_data
+    )
+
+    plt.figure(figsize=(15, 10))
+
+    plt.plot(train_data.to_pd(), label="Training Data", color="blue")
+
+    plt.plot(test_data.to_pd(), label="Test Data", color="green")
+
+    plt.plot(
+        arima_forecast.to_pd(), label="ARIMA Forecast", color="red", linestyle="--"
+    )
+
+    plt.plot(
+        prophet_forecast.to_pd(),
+        label="Prophet Forecast",
+        color="purple",
+        linestyle="--",
+    )
+
+    plt.title("Time Series Forecasting: ARIMA vs Prophet")
+
+    plt.xlabel("Date")
+
+    plt.ylabel("Value")
+
+    plt.legend()
+
+    plt.grid(True)
+
+    plt.tight_layout()
+
+    plt.show()
+
+    print("ARIMA Evaluation:")
+
+    print(arima_eval)
+
+    print("\nProphet Evaluation:")
+
+    print(prophet_eval)
+
+
+def data_loader_returns_pandas_dataframes_which_we_c() -> None:
+    time_series, metadata = M4(subset="Hourly")[0]
+
+    train_data = TimeSeries.from_pd(time_series[metadata.trainval])
+
+    test_data = TimeSeries.from_pd(time_series[~metadata.trainval])
+
+    "We can then initialize and train Merlion’s DefaultForecaster, which is an forecasting model that balances performance with efficiency. We also obtain its predictions on the test split.\n"
+
+    model = DefaultForecaster(DefaultForecasterConfig())
+
+    model.train(train_data=train_data)
+
+    test_pred, test_err = model.forecast(time_stamps=test_data.time_stamps)
+
+    "Next, we visualize the model’s predictions.\n"
+
+    fig, ax = model.plot_forecast(time_series=test_data, plot_forecast_uncertainty=True)
+
+    plt.show()
+
+    "Finally, we quantitatively evaluate the model. sMAPE measures the error of the prediction on a scale of 0 to 100 (lower is better), while MSIS evaluates the quality of the 95% confidence band on a scale of 0 to 100 (lower is better).\n"
+
+    smape = ForecastMetric.sMAPE.value(ground_truth=test_data, predict=test_pred)
+
+    lb = TimeSeries.from_pd(
+        test_pred.to_pd() + norm.ppf(0.025) * test_err.to_pd().values
+    )
+
+    ub = TimeSeries.from_pd(
+        test_pred.to_pd() + norm.ppf(0.975) * test_err.to_pd().values
+    )
+
+    msis = ForecastMetric.MSIS.value(
+        ground_truth=test_data, predict=test_pred, insample=train_data, lb=lb, ub=ub
+    )
+
+    print(f"sMAPE: {smape:.4f}, MSIS: {msis:.4f}")
+
+
+def main() -> None:
+    assuming_your_data_and_values_are_already_define()
+    initialize_an_arima_model()
+    create_some_sample_data()
+    visualize_the_time_series_and_draw_a_dotted_line()
+    train_the_model_on_the_dataset()
+    create_some_sample_data_2()
+    after_creating_and_training_the_model()
+    create_some_sample_data_3()
+    plot_the_original_data_and_forecast()
+    create_some_sample_data_4()
+    create_some_sample_data_5()
+    create_some_sample_data_6()
+    create_sample_data()
+    data_loader_returns_pandas_dataframes_which_we_c()
 
 
 if __name__ == "__main__":
