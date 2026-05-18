@@ -1,6 +1,5 @@
 # Description: Short example for Merlion for Time Series Forecasting with Python.
 
-
 import logging
 
 import matplotlib.pyplot as plt
@@ -21,7 +20,6 @@ from merlion.transform.resample import TemporalResample
 from merlion.transform.sequence import TransformSequence
 from merlion.utils import TimeSeries
 from merlion.utils.time_series import TimeSeries
-from scipy.stats import norm
 from sklearn.model_selection import TimeSeriesSplit
 
 logger = logging.getLogger(__name__)
@@ -29,7 +27,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-
 
 # Load dataset
 url = "https://raw.githubusercontent.com/kylejones200/time_series/main/ercot_load_data.csv"
@@ -43,7 +40,6 @@ df["values"] = df["values"].interpolate()
 # Convert to Merlion TimeSeries format
 ts = TimeSeries.from_pd(df)
 logger.info(ts)
-
 
 # Initialize Prophet with optimized hyperparameters
 prophet_config = ProphetConfig(
@@ -66,7 +62,6 @@ test_data = TimeSeries.from_pd(df.iloc[split_idx:])
 prophet_model.train(train_data)
 arima_model.train(train_data)
 
-
 # Generate forecasts
 prophet_forecast, _ = prophet_model.forecast(test_data.time_stamps)
 arima_forecast, _ = arima_model.forecast(test_data.time_stamps)
@@ -76,7 +71,6 @@ arima_smape = ForecastMetric.sMAPE.value(test_data, arima_forecast)
 logger.info(f"Prophet sMAPE: {prophet_smape:.2f}")
 logger.info(f"ARIMA sMAPE: {arima_smape:.2f}")
 
-
 # Plot the results
 plt.figure(figsize=(10, 6))
 plt.plot(test_data.to_pd(), label="Actual")
@@ -85,7 +79,6 @@ plt.plot(arima_forecast.to_pd(), label="ARIMA Forecast", linestyle="--")
 plt.legend()
 plt.title("Prophet vs ARIMA Forecasting")
 plt.show()
-
 
 # Initialize an Isolation Forest model with the correct config
 config = IsolationForestConfig()
@@ -105,7 +98,6 @@ plt.plot(scores.to_pd(), label="Anomaly Scores", color="red", linestyle="--")
 plt.legend()
 plt.title("Anomaly Detection with Merlion")
 plt.show()
-
 
 # Instantiate models correctly
 prophet_model = Prophet(
@@ -181,13 +173,11 @@ def get_model(model_type="prophet", transform=None):
         "arima": ArimaConfig(order=(2, 1, 2), target_seq_index=0),
         "default": DefaultForecasterConfig(),
     }
-
     model_mapping = {
         "prophet": "merlion.models.forecast.prophet:Prophet",
         "arima": "merlion.models.forecast.arima:Arima",
         "default": "merlion.models.defaults:DefaultForecaster",
     }
-
     if model_type not in model_mapping:
         raise ValueError(f"Invalid model type: {model_type}")
 
@@ -200,12 +190,9 @@ def get_model(model_type="prophet", transform=None):
 def eval_model(model, train_data, test_data, title, plot: bool = False):
     forecast_horizon = min(len(test_data), 168)  # Forecast up to 7 days (168 hours)
     t = test_data.time_stamps[:forecast_horizon]
-
     model.train(train_data)
     yhat_test, test_err = model.forecast(t)
-
     smape_value = ForecastMetric.sMAPE.value(test_data, yhat_test)
-
     # Confidence Intervals
     if hasattr(model, "forecast") and test_err is not None:
         ci_multiplier = 1.96  # 95% confidence
@@ -215,7 +202,6 @@ def eval_model(model, train_data, test_data, title, plot: bool = False):
         ub = (
             yhat_test.to_pd() + ci_multiplier * test_err.to_pd().abs()
         ).values.flatten()
-
         # Ensure confidence intervals have the same length as timestamps
         min_length = min(len(t), len(lb), len(ub))
         t = t[:min_length]
@@ -223,12 +209,10 @@ def eval_model(model, train_data, test_data, title, plot: bool = False):
         ub = ub[:min_length]
 
     logger.info(f"{title} - sMAPE: {smape_value:.2f}")
-
     if plot:
         plt.figure(figsize=(10, 6))
         plt.plot(test_data.to_pd(), label="Actual")
         plt.plot(yhat_test.to_pd(), label="Forecast", linestyle="--")
-
         if hasattr(model, "forecast") and test_err is not None:
             plt.fill_between(
                 t, lb, ub, color="gray", alpha=0.3, label="Confidence Interval"
@@ -241,12 +225,10 @@ def eval_model(model, train_data, test_data, title, plot: bool = False):
     return yhat_test
 
 
-
 def main():
     # Run Prophet Model Without Transformations
     logger.info("No transform...")
     base = eval_model(get_model("prophet"), train_data, test_data, title="No Transform")
-
     # Apply Normalization
     logger.info("Normalize...")
     norm = eval_model(
@@ -255,7 +237,6 @@ def main():
         test_data,
         title="Mean-Variance Normalize",
     )
-
     # Apply Moving Average Transform
     logger.info("Moving Average...")
     ma = eval_model(
@@ -264,7 +245,6 @@ def main():
         test_data,
         title="Moving Average Transform",
     )
-
     # Apply Seasonal Differencing
     logger.info("Seasonal Differencing...")
     diff = eval_model(
@@ -273,35 +253,32 @@ def main():
         test_data,
         title="Seasonal Differencing Transform",
     )
-
     # Run Merlion ARIMA Model
     logger.info("\n=== ARIMA Model ===")
     arima_results = eval_model(
         get_model("arima"), train_data, test_data, title="Merlion ARIMA"
     )
-
     # Run Default Forecaster (Baseline Model)
     logger.info("\n=== Default Forecaster (Baseline Model) ===")
     default_results = eval_model(
         get_model("default"), train_data, test_data, title="Default Forecaster"
     )
-
     # Create a table of sMAPE values
     smape_values = {
         "Prophet (No Transform)": ForecastMetric.sMAPE.value(test_data, base),
-        "Prophet (Mean-Variance Normalize)": ForecastMetric.sMAPE.value(test_data, norm),
+        "Prophet (Mean-Variance Normalize)": ForecastMetric.sMAPE.value(
+            test_data, norm
+        ),
         "Prophet (Moving Average Transform)": ForecastMetric.sMAPE.value(test_data, ma),
         "Prophet (Seasonal Differencing)": ForecastMetric.sMAPE.value(test_data, diff),
         "Merlion ARIMA": ForecastMetric.sMAPE.value(test_data, arima_results),
         "Default Forecaster": ForecastMetric.sMAPE.value(test_data, default_results),
     }
-
     # Convert to a DataFrame
     smape_table = pd.DataFrame(
         list(smape_values.items()), columns=["Model", "sMAPE"]
     ).sort_values(by="sMAPE")
     logger.info(smape_table)
-
     # Model      sMAPE
     # 5                  Default Forecaster   4.698401
     # 4                       Merlion ARIMA   6.038623
