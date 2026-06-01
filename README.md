@@ -11,14 +11,7 @@ Merlion supports statistical models, machine learning approaches, and deep learn
 
 Normally you would want ARIMA to be auto tuned. I had trouble getting Merlion to do that --- a task easily done with pmdarima.
 
-## About
 
-Place the code for this article in this repository.
-The original article export is saved as `article.md`.
-
-## Files
-
-Add your `.ipynb`, `.py`, `.yaml`, `.js`, `.ts`, or other project files here.
 
 ## Disclaimer
 
